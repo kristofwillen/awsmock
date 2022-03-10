@@ -2,6 +2,7 @@ import pytest
 import pydantic
 import json
 from typing import List
+import bucket
 
 aws_region = "eu-west-1"
 
@@ -74,6 +75,7 @@ def kms_infra(kms_client):
 
 def test_s3_bucket(s3_client, s3_infra):
     resp = s3_client.list_buckets()
+    # buckets: List[bucket.Bucket] = for [bucket.Bucket(**kwargs) in resp['Buckets']]
     print(resp["Buckets"])
     assert len(resp["Buckets"]) == 2
 
@@ -86,11 +88,14 @@ def test_kms(kms_client, kms_infra):
 
 
 def test_bucket_encr(s3_client, s3_infra):
-    for b in ["test-bucket1", "test-bucket2"]:
-        response = s3_client.get_bucket_encryption(Bucket=b)
-        assert (
-            response["ServerSideEncryptionConfiguration"]["Rules"][0][
-                "ApplyServerSideEncryptionByDefault"
-            ]["SSEAlgorithm"]
-            == "aws:kms"
-        )
+    # for b in ["test-bucket1", "test-bucket2"]:
+    #     response = s3_client.get_bucket_encryption(Bucket=b)
+    #     assert (
+    #         response["ServerSideEncryptionConfiguration"]["Rules"][0][
+    #             "ApplyServerSideEncryptionByDefault"
+    #         ]["SSEAlgorithm"]
+    #         == "aws:kms"
+    #     )
+    resp = s3_client.list_buckets()
+    buckets: List[bucket.Bucket] = [Bucket(**item) for item in resp["Buckets"]]
+    assert buckets[0].hasattr("SSEAlgorithm")
